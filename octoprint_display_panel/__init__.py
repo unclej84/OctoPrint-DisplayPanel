@@ -39,9 +39,9 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
                           octoprint.plugin.TemplatePlugin,
                           octoprint.plugin.SettingsPlugin):
 
-	_bottom_height = 22
 	_cancel_requested_at = 0
 	_cancel_timer = None
+	_colored_strip_height = 16 # height of colored strip on top for dual color display
 	_debounce = 0
 	_display_init = False
 	_display_timeout_active = False
@@ -67,6 +67,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 	_pin_pause = -1
 	_pin_play = -1
 	_printer_state = 0	# 0 - disconnected, 1 - connected but idle, 2 - printing
+	_progress_on_top = False
 	_screen_mode = ScreenModes.SYSTEM
 	_system_stats = {}
 	_timebased_progress = False
@@ -180,6 +181,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 		self._pin_mode = int(self._settings.get(["pin_mode"]))
 		self._pin_pause = int(self._settings.get(["pin_pause"]))
 		self._pin_play = int(self._settings.get(["pin_play"]))
+		self._progress_on_top = bool(self._settings.get(["progress_on_top"]))
 		self._screen_mode = ScreenModes.SYSTEM
 		self._last_debounce = self._debounce
 		self._last_display_timeout_option = self._display_timeout_option
@@ -208,6 +210,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 			pin_mode		= -1,			# Default is disabled
 			pin_pause		= -1,			# Default is disabled
 			pin_play		= -1,			# Default is disabled
+			progress_on_top	= False,		# Default is disabled
 			timebased_progress	= False,	# Default is disabled
 		)
 
@@ -680,8 +683,8 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 		Show a confirmation message that a cancel print has been requested
 		"""
 
-		top = 0
-		bottom = self.height - self._bottom_height
+		top = (self._colored_strip_height + 2) * int(self._progress_on_top)
+		bottom = self.height - (self._colored_strip_height * int(not self._progress_on_top))
 		left = 0
 
 		if self._display_init:
@@ -710,8 +713,8 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 		"""
 
 		if self._display_init:
-			top = 0
-			bottom = self.height - self._bottom_height
+			top = (self._colored_strip_height + 2) * int(self._progress_on_top)
+			bottom = self.height - (self._colored_strip_height * int(not self._progress_on_top))
 			left = 0
 
 			# Draw a black filled box to clear the image.
@@ -734,8 +737,8 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 		"""
 
 		if self._display_init:
-			top = 0
-			bottom = self.height - self._bottom_height
+			top = (self._colored_strip_height + 2) * int(self._progress_on_top)
+			bottom = self.height - (self._colored_strip_height * int(not self._progress_on_top))
 			left = 0
 
 			try:
@@ -761,8 +764,8 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 		"""
 
 		if self._display_init:
-			top = 0
-			bottom = self.height - self._bottom_height
+			top = (self._colored_strip_height + 2) * int(self._progress_on_top)
+			bottom = self.height - (self._colored_strip_height * int(not self._progress_on_top))
 			left = 0
 
 			try:
@@ -791,8 +794,8 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 		"""
 
 		if self._display_init:
-			top = self.height - self._bottom_height
-			bottom = self.height
+			top = (self.height - self._colored_strip_height) * int(not self._progress_on_top)
+			bottom = self.height - (self._colored_strip_height * int(self._progress_on_top))
 			left = 0
 
 			try:
@@ -803,25 +806,25 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 					# Printer isn't connected
 					display_string = "Printer Not Connected"
 					text_width = self.draw.textsize(display_string, font=self.font)[0]
-					self.draw.text((self.width / 2 - text_width / 2, top + 6), display_string, font=self.font, fill=255)
+					self.draw.text((self.width / 2 - text_width / 2, top + 3), display_string, font=self.font, fill=255)
 
 				elif current_data['state']['flags']['paused'] or current_data['state']['flags']['pausing']:
 					# Printer paused
 					display_string = "Paused"
 					text_width = self.draw.textsize(display_string, font=self.font)[0]
-					self.draw.text((self.width / 2 - text_width / 2, top + 6), display_string, font=self.font, fill=255)
+					self.draw.text((self.width / 2 - text_width / 2, top + 3), display_string, font=self.font, fill=255)
 
 				elif current_data['state']['flags']['cancelling']:
 					# Printer paused
 					display_string = "Cancelling"
 					text_width = self.draw.textsize(display_string, font=self.font)[0]
-					self.draw.text((self.width / 2 - text_width / 2, top + 6), display_string, font=self.font, fill=255)
+					self.draw.text((self.width / 2 - text_width / 2, top + 3), display_string, font=self.font, fill=255)
 
 				elif current_data['state']['flags']['ready'] and (current_data['progress']['completion'] or 0) < 100:
 					# Printer connected, not printing
 					display_string = "Waiting For Job"
 					text_width = self.draw.textsize(display_string, font=self.font)[0]
-					self.draw.text((self.width / 2 - text_width / 2, top + 6), display_string, font=self.font, fill=255)
+					self.draw.text((self.width / 2 - text_width / 2, top + 3), display_string, font=self.font, fill=255)
 
 				else:
 					percentage = int(current_data['progress']['completion'] or 0)
@@ -831,15 +834,15 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 					time_left = current_data['progress']['printTimeLeft'] or 0
 
 					# Progress bar
-					self.draw.rectangle((0, top + 2, self.width - 1, top + 10), fill=0, outline=255, width=1)
+					self.draw.rectangle((0, top + 0, self.width - 1, top + 8), fill=0, outline=255, width=1)
 					bar_width = int((self.width - 5) * percentage / 100)
-					self.draw.rectangle((2, top + 4, bar_width, top + 8), fill=255, outline=255, width=1)
+					self.draw.rectangle((2, top + 2, bar_width, top + 6), fill=255, outline=255, width=1)
 
 					# Percentage and ETA
-					self.draw.text((0, top + 12), "%s%%" % (percentage), font=self.font, fill=255)
+					self.draw.text((0, top + 10), "%s%%" % (percentage), font=self.font, fill=255)
 					eta = time.strftime(self._eta_strftime, time.localtime(time.time() + time_left))
 					eta_width = self.draw.textsize(eta, font=self.font)[0]
-					self.draw.text((self.width - eta_width, top + 12), eta, font=self.font, fill=255)
+					self.draw.text((self.width - eta_width, top + 10), eta, font=self.font, fill=255)
 			except Exception as ex:
 				self.log_error(ex)
 
