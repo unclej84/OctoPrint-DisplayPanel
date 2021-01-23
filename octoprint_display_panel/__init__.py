@@ -839,15 +839,15 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 					time_left = current_data['progress']['printTimeLeft'] or 0
 
 					# Progress bar
-					self.draw.rectangle((0, top + 0, self.width - 1, top + 6), fill=0, outline=255, width=1)
+					self.draw.rectangle((0, top + 0, self.width - 1, top + 5), fill=0, outline=255, width=1)
 					bar_width = int((self.width - 5) * percentage / 100)
-					self.draw.rectangle((2, top + 2, bar_width, top + 4), fill=255, outline=255, width=1)
+					self.draw.rectangle((2, top + 2, bar_width, top + 3), fill=255, outline=255, width=1)
 
 					# Percentage and ETA
 					self.draw.text((0, top + 8), "%s%%" % (percentage), font=self.font, fill=255)
 					eta = time.strftime(self._eta_strftime, time.localtime(time.time() + time_left))
 					eta_width = self.draw.textsize(eta, font=self.font)[0]
-					self.draw.text((self.width - eta_width, top + 8), eta, font=self.font, fill=255)
+					self.draw.text((self.width - eta_width, top + 6), eta, font=self.font, fill=255)
 			except Exception as ex:
 				self.log_error(ex)
 
