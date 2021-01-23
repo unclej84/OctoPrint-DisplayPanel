@@ -795,7 +795,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 
 		if self._display_init:
 			top = (self.height - self._colored_strip_height) * int(not self._progress_on_top)
-			bottom = self.height - (self._colored_strip_height * int(self._progress_on_top))
+			bottom = self.height - ((self.height - self._colored_strip_height) * int(self._progress_on_top))
 			left = 0
 
 			try:
