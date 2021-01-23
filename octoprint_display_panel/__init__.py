@@ -1,7 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import
 
-# system stats 
+# system stats
 import psutil
 import shutil
 import socket
@@ -689,7 +689,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 
 		if self._display_init:
 			try:
-				self.draw.rectangle((0, 0, self.width, bottom), fill=0)
+				self.draw.rectangle((0, top, self.width, bottom), fill=0)
 
 				display_string = "Cancel Print?"
 				text_width = self.draw.textsize(display_string, font=self.font)[0]
@@ -709,7 +709,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 
 	def update_ui_system(self):
 		"""
-		Update the upper two-thirds of the screen with system stats collected by the timed collector
+		Update three-fourths of the screen with system stats collected by the timed collector
 		"""
 
 		if self._display_init:
@@ -718,7 +718,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 			left = 0
 
 			# Draw a black filled box to clear the image.
-			self.draw.rectangle((0, 0, self.width, bottom), fill=0)
+			self.draw.rectangle((0, top, self.width, bottom), fill=0)
 
 			try:
 				mem = self._system_stats['memory']
@@ -733,7 +733,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 
 	def update_ui_printer(self):
 		"""
-		Update the upper two-thirds of the screen with stats about the printer, such as temperatures
+		Update three-fourths of the screen with stats about the printer, such as temperatures
 		"""
 
 		if self._display_init:
@@ -742,7 +742,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 			left = 0
 
 			try:
-				self.draw.rectangle((0, 0, self.width, bottom), fill=0)
+				self.draw.rectangle((0, top, self.width, bottom), fill=0)
 				self.draw.text((left, top + 0), "Printer Temperatures", font=self.font, fill=255)
 
 				if self._printer.get_current_connection()[0] == "Closed":
@@ -760,7 +760,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 
 	def update_ui_print(self, current_data):
 		"""
-		Update the upper two-thirds of the screen with information about the current ongoing print
+		Update three-fourths of the screen with information about the current ongoing print
 		"""
 
 		if self._display_init:
@@ -769,7 +769,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 			left = 0
 
 			try:
-				self.draw.rectangle((0, 0, self.width, bottom), fill=0)
+				self.draw.rectangle((0, top, self.width, bottom), fill=0)
 				self.draw.text((left, top + 0), "State: %s" % (self._printer.get_state_string()), font=self.font, fill=255)
 
 				if current_data['job']['file']['name']:
@@ -790,7 +790,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 
 	def update_ui_bottom(self, current_data):
 		"""
-		Update the bottom third of the screen with persistent information about the current print
+		Update one-fourths of the screen with persistent information about the current print
 		"""
 
 		if self._display_init:
@@ -806,25 +806,25 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 					# Printer isn't connected
 					display_string = "Printer Not Connected"
 					text_width = self.draw.textsize(display_string, font=self.font)[0]
-					self.draw.text((self.width / 2 - text_width / 2, top + 3), display_string, font=self.font, fill=255)
+					self.draw.text((self.width / 2 - text_width / 2, top + 4), display_string, font=self.font, fill=255)
 
 				elif current_data['state']['flags']['paused'] or current_data['state']['flags']['pausing']:
 					# Printer paused
 					display_string = "Paused"
 					text_width = self.draw.textsize(display_string, font=self.font)[0]
-					self.draw.text((self.width / 2 - text_width / 2, top + 3), display_string, font=self.font, fill=255)
+					self.draw.text((self.width / 2 - text_width / 2, top + 4), display_string, font=self.font, fill=255)
 
 				elif current_data['state']['flags']['cancelling']:
 					# Printer paused
 					display_string = "Cancelling"
 					text_width = self.draw.textsize(display_string, font=self.font)[0]
-					self.draw.text((self.width / 2 - text_width / 2, top + 3), display_string, font=self.font, fill=255)
+					self.draw.text((self.width / 2 - text_width / 2, top + 4), display_string, font=self.font, fill=255)
 
 				elif current_data['state']['flags']['ready'] and (current_data['progress']['completion'] or 0) < 100:
 					# Printer connected, not printing
 					display_string = "Waiting For Job"
 					text_width = self.draw.textsize(display_string, font=self.font)[0]
-					self.draw.text((self.width / 2 - text_width / 2, top + 3), display_string, font=self.font, fill=255)
+					self.draw.text((self.width / 2 - text_width / 2, top + 4), display_string, font=self.font, fill=255)
 
 				else:
 					percentage = int(current_data['progress']['completion'] or 0)
@@ -834,15 +834,15 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 					time_left = current_data['progress']['printTimeLeft'] or 0
 
 					# Progress bar
-					self.draw.rectangle((0, top + 0, self.width - 1, top + 8), fill=0, outline=255, width=1)
+					self.draw.rectangle((0, top + 0, self.width - 1, top + 6), fill=0, outline=255, width=1)
 					bar_width = int((self.width - 5) * percentage / 100)
-					self.draw.rectangle((2, top + 2, bar_width, top + 6), fill=255, outline=255, width=1)
+					self.draw.rectangle((2, top + 2, bar_width, top + 4), fill=255, outline=255, width=1)
 
 					# Percentage and ETA
-					self.draw.text((0, top + 10), "%s%%" % (percentage), font=self.font, fill=255)
+					self.draw.text((0, top + 8), "%s%%" % (percentage), font=self.font, fill=255)
 					eta = time.strftime(self._eta_strftime, time.localtime(time.time() + time_left))
 					eta_width = self.draw.textsize(eta, font=self.font)[0]
-					self.draw.text((self.width - eta_width, top + 10), eta, font=self.font, fill=255)
+					self.draw.text((self.width - eta_width, top + 8), eta, font=self.font, fill=255)
 			except Exception as ex:
 				self.log_error(ex)
 
