@@ -757,8 +757,8 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 					tool = temperatures['tool0'] or None
 					bed = temperatures['bed'] or None
 
-					self.draw.text((left, top + offset + 9), "Head: %s / %s ºC" % (tool['actual'], tool['target']), font=self.font, fill=255)
-					self.draw.text((left, top + offset + 18), " Bed: %s / %s ºC" % (bed['actual'], bed['target']), font=self.font, fill=255)
+					self.draw.text((left, top + offset + 9), "Head: %s / %s \xb0C" % (tool['actual'], tool['target']), font=self.font, fill=255)
+					self.draw.text((left, top + offset + 18), " Bed: %s / %s \xb0C" % (bed['actual'], bed['target']), font=self.font, fill=255)
 			except Exception as ex:
 				self.log_error(ex)
 
@@ -844,10 +844,10 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 					self.draw.rectangle((2, top + 2, bar_width, top + 3), fill=255, outline=255, width=1)
 
 					# Percentage and ETA
-					self.draw.text((0, top + 8), "%s%%" % (percentage), font=self.font, fill=255)
+					self.draw.text((0, top + 5), "%s%%" % (percentage), font=self.font, fill=255)
 					eta = time.strftime(self._eta_strftime, time.localtime(time.time() + time_left))
 					eta_width = self.draw.textsize(eta, font=self.font)[0]
-					self.draw.text((self.width - eta_width, top + 6), eta, font=self.font, fill=255)
+					self.draw.text((self.width - eta_width, top + 5), eta, font=self.font, fill=255)
 			except Exception as ex:
 				self.log_error(ex)
 
