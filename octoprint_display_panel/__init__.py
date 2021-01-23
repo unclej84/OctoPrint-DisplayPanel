@@ -39,6 +39,7 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
                           octoprint.plugin.TemplatePlugin,
                           octoprint.plugin.SettingsPlugin):
 
+	_area_offset = 2
 	_cancel_requested_at = 0
 	_cancel_timer = None
 	_colored_strip_height = 16 # height of colored strip on top for dual color display
@@ -683,9 +684,10 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 		Show a confirmation message that a cancel print has been requested
 		"""
 
-		top = (self._colored_strip_height + 2) * int(self._progress_on_top)
+		top = (self._colored_strip_height) * int(self._progress_on_top)
 		bottom = self.height - (self._colored_strip_height * int(not self._progress_on_top))
 		left = 0
+		offset = self._area_offset * int(self._progress_on_top)
 
 		if self._display_init:
 			try:
@@ -693,16 +695,16 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 
 				display_string = "Cancel Print?"
 				text_width = self.draw.textsize(display_string, font=self.font)[0]
-				self.draw.text((self.width / 2 - text_width / 2, top + 0), display_string, font=self.font, fill=255)
+				self.draw.text((self.width / 2 - text_width / 2, top + offset + 0), display_string, font=self.font, fill=255)
 				display_string = "Press 'X' to confirm"
 				text_width = self.draw.textsize(display_string, font=self.font)[0]
-				self.draw.text((self.width / 2 - text_width / 2, top + 9), display_string, font=self.font, fill=255)
+				self.draw.text((self.width / 2 - text_width / 2, top + offset + 9), display_string, font=self.font, fill=255)
 				display_string = "Press any button or"
 				text_width = self.draw.textsize(display_string, font=self.font)[0]
-				self.draw.text((self.width / 2 - text_width / 2, top + 18), display_string, font=self.font, fill=255)
+				self.draw.text((self.width / 2 - text_width / 2, top + offset + 18), display_string, font=self.font, fill=255)
 				display_string = "wait 10 sec to escape"
 				text_width = self.draw.textsize(display_string, font=self.font)[0]
-				self.draw.text((self.width / 2 - text_width / 2, top + 27), display_string, font=self.font, fill=255)
+				self.draw.text((self.width / 2 - text_width / 2, top + offset + 27), display_string, font=self.font, fill=255)
 			except Exception as ex:
 				self.log_error(ex)
 
@@ -713,9 +715,10 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 		"""
 
 		if self._display_init:
-			top = (self._colored_strip_height + 2) * int(self._progress_on_top)
+			top = (self._colored_strip_height) * int(self._progress_on_top)
 			bottom = self.height - (self._colored_strip_height * int(not self._progress_on_top))
 			left = 0
+			offset = self._area_offset * int(self._progress_on_top)
 
 			# Draw a black filled box to clear the image.
 			self.draw.rectangle((0, top, self.width, bottom), fill=0)
@@ -724,12 +727,12 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 				mem = self._system_stats['memory']
 				disk = self._system_stats['disk']
 				# Write four lines of text.
-				self.draw.text((left, top + 0), "IP: %s" % (self._system_stats['ip']), font=self.font, fill=255)
-				self.draw.text((left, top + 9), "Load: %s, %s, %s" % self._system_stats['load'], font=self.font, fill=255)
-				self.draw.text((left, top + 18), "Mem: %s/%s MB %s%%" % (int(mem.used/1048576), int(mem.total/1048576), mem.percent), font=self.font, fill=255)
-				self.draw.text((left, top + 27), "Disk: %s/%s GB %s%%" % (int(disk.used/1073741824), int((disk.used+disk.total)/1073741824), int(10000*disk.used/(disk.used+disk.free))/100), font=self.font, fill=255)
+				self.draw.text((left, top + offset + 0), "IP: %s" % (self._system_stats['ip']), font=self.font, fill=255)
+				self.draw.text((left, top + offset + 9), "Load: %s, %s, %s" % self._system_stats['load'], font=self.font, fill=255)
+				self.draw.text((left, top + offset + 18), "Mem: %s/%s MB %s%%" % (int(mem.used/1048576), int(mem.total/1048576), mem.percent), font=self.font, fill=255)
+				self.draw.text((left, top + offset + 27), "Disk: %s/%s GB %s%%" % (int(disk.used/1073741824), int((disk.used+disk.total)/1073741824), int(10000*disk.used/(disk.used+disk.free))/100), font=self.font, fill=255)
 			except:
-				self.draw.text((left, top + 9), "Gathering System Stats", font=self.font, fill=255)
+				self.draw.text((left, top + offset + 9), "Gathering System Stats", font=self.font, fill=255)
 
 	def update_ui_printer(self):
 		"""
@@ -737,24 +740,25 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 		"""
 
 		if self._display_init:
-			top = (self._colored_strip_height + 2) * int(self._progress_on_top)
+			top = (self._colored_strip_height) * int(self._progress_on_top)
 			bottom = self.height - (self._colored_strip_height * int(not self._progress_on_top))
 			left = 0
+			offset = self._area_offset * int(self._progress_on_top)
 
 			try:
 				self.draw.rectangle((0, top, self.width, bottom), fill=0)
-				self.draw.text((left, top + 0), "Printer Temperatures", font=self.font, fill=255)
+				self.draw.text((left, top + offset + 0), "Printer Temperatures", font=self.font, fill=255)
 
 				if self._printer.get_current_connection()[0] == "Closed":
-					self.draw.text((left, top + 9), "Head: no printer", font=self.font, fill=255)
-					self.draw.text((left, top + 18), " Bed: no printer", font=self.font, fill=255)
+					self.draw.text((left, top + offset + 9), "Head: no printer", font=self.font, fill=255)
+					self.draw.text((left, top + offset + 18), " Bed: no printer", font=self.font, fill=255)
 				else:
 					temperatures = self._printer.get_current_temperatures()
 					tool = temperatures['tool0'] or None
 					bed = temperatures['bed'] or None
 
-					self.draw.text((left, top + 9), "Head: %s / %s ºC" % (tool['actual'], tool['target']), font=self.font, fill=255)
-					self.draw.text((left, top + 18), " Bed: %s / %s ºC" % (bed['actual'], bed['target']), font=self.font, fill=255)
+					self.draw.text((left, top + offset + 9), "Head: %s / %s ºC" % (tool['actual'], tool['target']), font=self.font, fill=255)
+					self.draw.text((left, top + offset + 18), " Bed: %s / %s ºC" % (bed['actual'], bed['target']), font=self.font, fill=255)
 			except Exception as ex:
 				self.log_error(ex)
 
@@ -764,27 +768,28 @@ class Display_panelPlugin(octoprint.plugin.StartupPlugin,
 		"""
 
 		if self._display_init:
-			top = (self._colored_strip_height + 2) * int(self._progress_on_top)
+			top = (self._colored_strip_height) * int(self._progress_on_top)
 			bottom = self.height - (self._colored_strip_height * int(not self._progress_on_top))
 			left = 0
+			offset = self._area_offset * int(self._progress_on_top)
 
 			try:
 				self.draw.rectangle((0, top, self.width, bottom), fill=0)
-				self.draw.text((left, top + 0), "State: %s" % (self._printer.get_state_string()), font=self.font, fill=255)
+				self.draw.text((left, top + offset + 0), "State: %s" % (self._printer.get_state_string()), font=self.font, fill=255)
 
 				if current_data['job']['file']['name']:
 					file_name = current_data['job']['file']['name']
-					self.draw.text((left, top + 9), "File: %s" % (file_name), font=self.font, fill=255)
+					self.draw.text((left, top + offset + 9), "File: %s" % (file_name), font=self.font, fill=255)
 
 					print_time = self._get_time_from_seconds(current_data['progress']['printTime'] or 0)
-					self.draw.text((left, top + 18), "Time: %s" % (print_time), font=self.font, fill=255)
+					self.draw.text((left, top + offset + 18), "Time: %s" % (print_time), font=self.font, fill=255)
 
 					filament = current_data['job']['filament']['tool0'] if "tool0" in current_data['job']['filament'] else current_data['job']['filament']
 					filament_length = self.float_count_formatter((filament['length'] or 0) / 1000, 3)
 					filament_mass = self.float_count_formatter(filament['volume'] or 0, 3)
-					self.draw.text((left, top + 27), "Filament: %sm/%scm3" % (filament_length, filament_mass), font=self.font, fill=255)
+					self.draw.text((left, top + offset + 27), "Filament: %sm/%scm3" % (filament_length, filament_mass), font=self.font, fill=255)
 				else:
-					self.draw.text((left, top + 18), "Waiting for file...", font=self.font, fill=255)
+					self.draw.text((left, top + offset + 18), "Waiting for file...", font=self.font, fill=255)
 			except Exception as ex:
 				self.log_error(ex)
 
